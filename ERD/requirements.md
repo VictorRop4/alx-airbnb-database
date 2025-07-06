@@ -1,113 +1,73 @@
- Entity Relationship Definitions
-1. User ↔ Property
-Relationship: One-to-Many
+# 🔗 Entity Relationships – Airbnb Clone Database
 
-Description: A user with the role of host can create multiple properties.
+## 📘 Overview
 
-Implementation:
+This document outlines the logical relationships between the entities in the Airbnb Clone relational database schema. These relationships enforce business rules and ensure referential integrity across the platform's core functionalities such as user management, property hosting, booking, and communication.
 
-Property.host_id → User.user_id
+---
 
-Foreign key constraint ensures referential integrity.
+## 🔄 Entity Relationships
 
-Cardinality:
+### 1. **User ↔ Property**
+- **Relationship**: One-to-Many
+- **Details**: A user (host) can list multiple properties.
+- **Implementation**: `properties.host_id` is a foreign key referencing `users.user_id`.
 
-One user (host) → many properties
+### 2. **User ↔ Booking**
+- **Relationship**: One-to-Many
+- **Details**: A user (guest) can make multiple bookings.
+- **Implementation**: `bookings.user_id` is a foreign key referencing `users.user_id`.
 
-One property → one host
+### 3. **Property ↔ Booking**
+- **Relationship**: One-to-Many
+- **Details**: A property can be booked multiple times by different users.
+- **Implementation**: `bookings.property_id` is a foreign key referencing `properties.property_id`.
 
-2. User ↔ Booking
-Relationship: One-to-Many
+### 4. **Booking ↔ Payment**
+- **Relationship**: One-to-One (or One-to-Zero-or-One, depending on platform policy)
+- **Details**: Each booking can have at most one associated payment record.
+- **Implementation**: `payments.booking_id` is a foreign key referencing `bookings.booking_id`.
 
-Description: A user with the role of guest can make multiple bookings.
+### 5. **User ↔ Review**
+- **Relationship**: One-to-Many
+- **Details**: A guest may leave multiple reviews, each for a different property.
+- **Implementation**: `reviews.user_id` is a foreign key referencing `users.user_id`.
 
-Implementation:
+### 6. **Property ↔ Review**
+- **Relationship**: One-to-Many
+- **Details**: A property can receive multiple reviews from different users.
+- **Implementation**: `reviews.property_id` is a foreign key referencing `properties.property_id`.
 
-Booking.user_id → User.user_id
+### 7. **User ↔ Message (Sender and Recipient)**
+- **Relationship**: Many-to-Many (self-referencing)
+- **Details**: Users can send and receive multiple messages to/from other users.
+- **Implementation**: `messages.sender_id` and `messages.recipient_id` both reference `users.user_id`.
 
-Cardinality:
+---
 
-One user (guest) → many bookings
+## 🧭 Summary Table
 
-One booking → one guest
+| From Entity | To Entity   | Cardinality     | Description                                 |
+|-------------|-------------|-----------------|---------------------------------------------|
+| `users`     | `properties`| 1 → many        | A host can list multiple properties         |
+| `users`     | `bookings`  | 1 → many        | A guest can make multiple bookings          |
+| `properties`| `bookings`  | 1 → many        | A property can have many bookings           |
+| `bookings`  | `payments`  | 1 → 1 (or 0..1)  | A booking may have one payment              |
+| `users`     | `reviews`   | 1 → many        | A guest can leave multiple reviews          |
+| `properties`| `reviews`   | 1 → many        | A property can receive many reviews         |
+| `users`     | `messages`  | many ↔ many      | Users can message one another               |
 
-3. Property ↔ Booking
-Relationship: One-to-Many
+---
 
-Description: A single property can be booked multiple times by different users.
+## 🎯 ERD Design Considerations
 
-Implementation:
+- **Cascading Deletes**: Enforced to remove dependent records (e.g., if a user is deleted, their properties, bookings, and messages are also deleted).
+- **UUID Primary Keys**: Used across all tables to ensure unique and scalable identification of records.
+- **Indexing**: Applied on all foreign keys to optimize join performance.
 
-Booking.property_id → Property.property_id
+---
 
-Cardinality:
+## 📌 Note
 
-One property → many bookings
+This documentation represents logical relationships and may be used to generate an ER diagram (ERD) using tools like dbdiagram.io, drawSQL, or pgModeler.
 
-One booking → one property
-
-4. Booking ↔ Payment
-Relationship: One-to-One
-
-Description: Each booking can have at most one associated payment.
-
-Implementation:
-
-Payment.booking_id → Booking.booking_id
-
-Cardinality:
-
-One booking → one payment
-
-One payment → one booking
-
-(Can enforce uniqueness constraint on Payment.booking_id to preserve 1:1)
-
-5. Property ↔ Review
-Relationship: One-to-Many
-
-Description: A property can receive multiple reviews from different users.
-
-Implementation:
-
-Review.property_id → Property.property_id
-
-Cardinality:
-
-One property → many reviews
-
-One review → one property
-
-6. User ↔ Review
-Relationship: One-to-Many
-
-Description: A user can post multiple reviews.
-
-Implementation:
-
-Review.user_id → User.user_id
-
-Cardinality:
-
-One user → many reviews
-
-One review → one user
-
-7. User ↔ Message (Sender–Recipient)
-Relationship: Many-to-Many (via self-referencing one-to-many in both directions)
-
-Description: Users can send and receive messages from other users.
-
-Implementation:
-
-Message.sender_id → User.user_id
-
-Message.recipient_id → User.user_id
-
-Cardinality:
-
-One user → many sent messages
-
-One user → many received messages
-
-Each message → one sender and one recipient
